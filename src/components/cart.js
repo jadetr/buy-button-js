@@ -81,7 +81,7 @@ export default class Cart extends Component {
    * @return {Array} HTML
    */
   get lineItems() {
-    return this.model ? this.model.lineItems : [];
+    return this.model ? this.model.lines : [];
   }
 
   /**
@@ -91,9 +91,9 @@ export default class Cart extends Component {
   get lineItemsHtml() {
     return this.lineItemCache.reduce((acc, lineItem) => {
       const data = Object.assign({}, lineItem, this.options.viewData);
-      const fullPrice = data.variant.priceV2.amount * data.quantity;
+      const fullPrice = data.cost.amountPerQuantity.amount * data.quantity;
       const formattedPrice = formatMoney(fullPrice, this.moneyFormat);
-      const discountAllocations = data.discountAllocations;
+      const discountAllocations = data.discountAllocations || [];
 
       const {discounts, totalDiscount} = discountAllocations.reduce((discountAcc, discount) => {
         const targetSelection = discount.discountApplication.targetSelection;
@@ -148,22 +148,23 @@ export default class Cart extends Component {
     if (!this.model) {
       return formatMoney(0, this.moneyFormat);
     }
-    const total = this.options.contents.discounts ? this.model.subtotalPriceV2.amount : this.model.lineItemsSubtotalPrice.amount;
+    //const total = this.options.contents.discounts ? this.model.subtotalPriceV2.amount : this.model.linesSubtotalPrice.amount;
+    const total = this.options.contents.discounts ? this.model.cost.subtotalAmount.amount : this.model.cost.subtotalAmount.amount;
     return formatMoney(total, this.moneyFormat);
   }
 
   get cartDiscounts() {
-    if (!this.options.contents.discounts || !this.model) {
+    if (!this.options.contents.discounts || !this.model || !this.model.discountAllocations) {
       return [];
     }
 
-    return this.model.discountApplications.reduce((discountArr, discount) => {
+    return this.model.discountAllocations.reduce((discountArr, discount) => {
       if (discount.targetSelection === CART_TARGET_SELECTION) {
         let discountValue = 0;
         if (discount.value.amount) {
           discountValue = discount.value.amount;
         } else if (discount.value.percentage) {
-          discountValue = (discount.value.percentage / 100) * this.model.lineItemsSubtotalPrice.amount;
+          discountValue = (discount.value.percentage / 100) * this.model.linesSubtotalPrice.amount;
         }
 
         if (discountValue > 0) {
@@ -183,7 +184,7 @@ export default class Cart extends Component {
     if (!this.model) {
       return true;
     }
-    return this.model.lineItems.length < 1;
+    return this.model.lines.length < 1;
   }
 
   get cartNote() {
@@ -208,7 +209,7 @@ export default class Cart extends Component {
       maxWidth: imageSize,
       maxHeight: imageSize,
     };
-    if (lineItem.variant.image) {
+    if (false && lineItem.variant.image) {
       return this.props.client.image.helpers.imageForSize(lineItem.variant.image, imageOptions);
     } else {
       return NO_IMG_URL;
@@ -232,13 +233,13 @@ export default class Cart extends Component {
   fetchData() {
     const checkoutId = localStorage.getItem(this.localStorageCheckoutKey);
     if (checkoutId) {
-      return this.props.client.checkout.fetch(checkoutId).then((checkout) => {
+      return this.props.client.cart.fetch(checkoutId).then((checkout) => {
         this.model = checkout;
         if (checkout.completedAt) {
           return this.removeCheckout();
         }
         return this.sanitizeCheckout(checkout).then((newCheckout) => {
-          this.updateCache(newCheckout.lineItems);
+          this.updateCache(newCheckout.lines);
           return newCheckout;
         });
       }).catch(() => {
@@ -250,12 +251,12 @@ export default class Cart extends Component {
   }
 
   sanitizeCheckout(checkout) {
-    const lineItemsToDelete = checkout.lineItems.filter((item) => !item.variant);
+    const lineItemsToDelete = checkout.lines.filter((item) => !item.variant);
     if (!lineItemsToDelete.length) {
       return Promise.resolve(checkout);
     }
     const lineItemIds = lineItemsToDelete.map((item) => item.id);
-    return this.props.client.checkout.removeLineItems(checkout.id, lineItemIds).then((newCheckout) => {
+    return this.props.client.cart.removeLineItems(checkout.id, lineItemIds).then((newCheckout) => {
       return newCheckout;
     });
   }
@@ -281,7 +282,7 @@ export default class Cart extends Component {
     return super.init(data)
       .then((cart) => {
         return this.toggles.map((toggle) => {
-          const lineItems = cart.model ? cart.model.lineItems : [];
+          const lineItems = cart.model ? cart.model.lines : [];
           return toggle.init({lineItems});
         });
       }).then(() => this);
@@ -343,14 +344,14 @@ export default class Cart extends Component {
    */
   setQuantity(target, fn) {
     const id = target.getAttribute('data-line-item-id');
-    const item = this.model.lineItems.find((lineItem) => lineItem.id === id);
+    const item = this.model.lines.find((lineItem) => lineItem.id === id);
     const newQty = fn(item.quantity);
     return this.props.tracker.trackMethod(this.updateItem.bind(this), 'Update Cart', this.cartItemTrackingInfo(item, newQty))(id, newQty);
   }
 
   setNote(evt) {
     const note = evt.target.value;
-    return this.props.client.checkout.updateAttributes(this.model.id, {note}).then((checkout) => {
+    return this.props.client.cart.updateAttributes(this.model.id, {note}).then((checkout) => {
       this.model = checkout;
       return checkout;
     });
@@ -402,9 +403,9 @@ export default class Cart extends Component {
         addClassToElement('is-loading', quantityEl);
       }
     }
-    return this.props.client.checkout.updateLineItems(this.model.id, [lineItem]).then((checkout) => {
+    return this.props.client.cart.updateLineItems(this.model.id, [lineItem]).then((checkout) => {
       this.model = checkout;
-      this.updateCache(this.model.lineItems);
+      this.updateCache(this.model.lines);
       this.toggles.forEach((toggle) => toggle.view.render());
       if (quantity > 0) {
         this.view.render();
@@ -428,11 +429,12 @@ export default class Cart extends Component {
     if (openCart) {
       this.open();
     }
-    const lineItem = {variantId: variant.id, quantity, customAttributes};
+    const lineItem = {merchandiseId: variant.id, quantity: quantity, attributes: customAttributes};
+    //const lineItem = {merchandiseId: variant.id, quantity};
     if (this.model) {
-      return this.props.client.checkout.addLineItems(this.model.id, [lineItem]).then((checkout) => {
+      return this.props.client.cart.addLineItems(this.model.id, [lineItem]).then((checkout) => {
         this.model = checkout;
-        this.updateCache(this.model.lineItems);
+        this.updateCache(this.model.lines);
         this.view.render();
         this.toggles.forEach((toggle) => toggle.view.render());
         if (!openCart) {
@@ -442,15 +444,15 @@ export default class Cart extends Component {
       });
     } else {
       const input = {
-        lineItems: [
+        lines: [
           lineItem,
         ],
-        customAttributes: this.options.customAttributes || [],
+        //customAttributes: this.options.customAttributes || [],
       };
-      return this.props.client.checkout.create(input).then((checkout) => {
+      return this.props.client.cart.create(input).then((checkout) => {
         localStorage.setItem(this.localStorageCheckoutKey, checkout.id);
         this.model = checkout;
-        this.updateCache(this.model.lineItems);
+        this.updateCache(this.model.lines);
         this.view.render();
         this.toggles.forEach((toggle) => toggle.view.render());
         if (!openCart) {
@@ -465,9 +467,9 @@ export default class Cart extends Component {
    * Remove all lineItems in the cart
    */
   empty() {
-    const lineItemIds = this.model.lineItems ? this.model.lineItems.map((item) => item.id) : [];
+    const lineItemIds = this.model.lines ? this.model.lines.map((item) => item.id) : [];
 
-    return this.props.client.checkout.removeLineItems(this.model.id, lineItemIds).then((checkout) => {
+    return this.props.client.cart.removeLineItems(this.model.id, lineItemIds).then((checkout) => {
       this.model = checkout;
       this.view.render();
       this.toggles.forEach((toggle) => toggle.view.render());
