@@ -252,7 +252,7 @@ export default class Cart extends Component {
   }
 
   sanitizeCheckout(checkout) {
-    const lineItemsToDelete = checkout.lines.filter((item) => !item.variant);
+    const lineItemsToDelete = checkout.lines.filter((item) => !item.merchandise);
     if (!lineItemsToDelete.length) {
       return Promise.resolve(checkout);
     }
@@ -448,7 +448,7 @@ export default class Cart extends Component {
         lines: [
           lineItem,
         ],
-        //customAttributes: this.options.customAttributes || [],
+        attributes: this.options.customAttributes || [],
       };
       return this.props.client.cart.create(input).then((checkout) => {
         localStorage.setItem(this.localStorageCheckoutKey, checkout.id);

@@ -2317,7 +2317,7 @@ var Config = function () {
     if (attrs.hasOwnProperty('apiVersion')) {
       this.apiVersion = attrs.apiVersion;
     } else {
-      this.apiVersion = '2023-10';
+      this.apiVersion = '2024-04';
     }
 
     if (attrs.hasOwnProperty('source')) {
@@ -2560,7 +2560,7 @@ function query(client) {
     }, function (node) {
       node.addFragment(spreads.ProductFragment);
     });
-  });
+  }, client.internationalizationDirective);
   return document;
 }
 
