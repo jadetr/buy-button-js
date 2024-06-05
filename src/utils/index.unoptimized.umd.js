@@ -1038,6 +1038,10 @@ function parseArgs(args) {
     }
     internationalizationDirective = args[2];
     selectionSetCallback = args[1];
+  } else if (args.length === 2 && args[1] !== undefined && Object.prototype.toString.call(args[1]) === '[object String]' && args[1].indexOf('inContext')) {
+    selectionSetCallback = args[0];
+    internationalizationDirective = args[1]; 
+    name = null; 
   } else if (args.length === 2 || (args.length === 3 && args[2] === undefined)) {
     if (Object.prototype.toString.call(args[0]) === '[object String]') {
         name = args[0];
@@ -4090,8 +4094,8 @@ var ShopResource = function (_Resource) {
   }, {
     key: 'fetchLocalization', 
     value: function fetchLocalization() {
-      return this.graphQLClient.send(query_localization).then(defaultResolver('shop'));
-    }
+      return this.graphQLClient.send(query_localization).then(defaultResolver('localization'));
+    } 
   }]);
   return ShopResource;
 }(Resource);
