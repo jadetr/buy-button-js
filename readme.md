@@ -55,6 +55,8 @@ if (!checkout){
 - Custom attributes are not displayed in the cart before checkout, which may cause confusion for customers with bulk orders. However, this should not be an issue for small orders.
 - mocha test framework is purged
 - After compiling the library, you will need to manually merge your bits with the live shopify bits. We have provided our compiled minified version in ./latest folder.
+- For GraphQL cart API support, this version was built by modifying a compiled version of js-buy-sdk which is a work in progress: https://github.com/Shopify/js-buy-sdk/tree/sd-cart 
+
 ## Usage
 
 This project is shared for educational purposes and is provided without warranty under the MIT license. 
