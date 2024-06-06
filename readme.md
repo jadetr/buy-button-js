@@ -1,6 +1,6 @@
-# BuyButton.js with custom attributes
+# BuyButton.js with custom attributes AND market and language support
 
-~ For custom engineering solutions, please contact our firm [get-magic.com](https://get-magic.com) ~
+~ This repo was forked from  Innovation-Magic-LLC/buy-button-js-customattributes who added custom attributes ~
 
 This repository contains a modified version of the Shopify Buy Button library that allows developers to add custom attributes to product line items. While the default Buy Button library does not support this functionality, our implementation enables sending additional data from external applications to Shopify, facilitating the creation of custom retail functionality.
 
@@ -9,11 +9,46 @@ This repository contains a modified version of the Shopify Buy Button library th
 - Add custom attributes to product line items during checkout
 - Attributes are visible to customers during the checkout process
 - Attributes are accessible in the Shopify admin panel and through webhooks as metadata
+- Display product price and cart line item price in the currency of a given market
+- Display product name and variant name in the desired language 
 
 <p style="width: 40%">          
 <img src="docs/assets/images/customAttributes_1.png">
 <img src="docs/assets/images/customAttributes_2.png">
     </p>
+
+## Show product and cart in the currency and language for a given market
+```
+var countryCode = "FR";
+var language = "fr";
+var country_language = language+'-'+countryCode;
+var client = await ShopifyBuy.buildClient({
+    domain: "---.myshopify.com",
+    storefrontAccessToken: "---",
+    language: country_language,
+});
+
+client.graphQLClient.internationalizationDirective = "@inContext(country: "+countryCode+", language: "+language.toUpperCase()+")"
+
+var localization = await client.shop.fetchLocalization().then(function (res) {
+    return res;
+});
+
+var currencyCode = localization.country.currency.isoCode;
+
+const localStorageCheckoutKey = `${client.config.storefrontAccessToken}.${client.config.domain}.checkoutId`;
+var checkout = null;
+if (localStorage.getItem(localStorageCheckoutKey)) {
+    var checkoutId = localStorage.getItem(localStorageCheckoutKey);
+    checkout = await client.cart.fetch(checkoutId);
+} 
+
+//checkout = null;
+if (!checkout){
+    checkout = await client.cart.create(input);
+    localStorage.setItem(localStorageCheckoutKey, checkout.id);
+}
+```
 
 ## Limitations
 
