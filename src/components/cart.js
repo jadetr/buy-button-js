@@ -346,8 +346,11 @@ export default class Cart extends Component {
   setQuantity(target, fn) {
     const id = target.getAttribute('data-line-item-id');
     const item = this.model.lines.find((lineItem) => lineItem.id === id);
+    const attributes = item.attributes.map((attr) => { 
+      return {key: attr.key, value: attr.value}
+    });
     const newQty = fn(item.quantity);
-    return this.props.tracker.trackMethod(this.updateItem.bind(this), 'Update Cart', this.cartItemTrackingInfo(item, newQty))(id, newQty);
+    return this.props.tracker.trackMethod(this.updateItem.bind(this), 'Update Cart', this.cartItemTrackingInfo(item, newQty))(id, newQty, attributes);
   }
 
   setNote(evt) {
@@ -394,9 +397,9 @@ export default class Cart extends Component {
    * @param {Number} id - lineItem id.
    * @param {Number} qty - quantity for line item.
    */
-  updateItem(id, quantity) {
+  updateItem(id, quantity, attributes) {
     this._userEvent('updateItemQuantity');
-    const lineItem = {id, quantity};
+    const lineItem = {id, quantity, attributes};
     const lineItemEl = this.view.document.getElementById(id);
     if (lineItemEl) {
       const quantityEl = lineItemEl.getElementsByClassName(this.classes.lineItem.quantity)[0];

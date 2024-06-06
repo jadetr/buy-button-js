@@ -22,13 +22,15 @@ async function build() {
       input: srcPath,
       plugins: [
         babel({
-          exclude: ['node_modules/**'],
+          exclude: ['node_modules/**', 'src/utils/index.unoptimized.umd.js'],
         }),
         nodeResolve({
           extensions: ['.js'],
           mainFields: ['module', 'main'],
         }),
-        commonjs(),
+        commonjs({
+          requireReturnsDefault: 'auto', // <---- this solves default issue
+        }),
       ],
     });
 
