@@ -426,7 +426,7 @@ export default class Cart extends Component {
    * @param {Number} [quantity=1] - quantity to be added.
    * @param {Number} customAttributes - customAttributes to be added as { key: "_someKey", value: "_someValue" }. 
    */
-  addVariantToCart(variant, quantity = 1, customAttributes = [],  openCart = true) {
+  addVariantToCart(variant, quantity = 1, customAttributes = [],  sellingPlanId = null, openCart = true) {
     if (quantity <= 0) {
       return null;
     }
@@ -434,6 +434,10 @@ export default class Cart extends Component {
       this.open();
     }
     const lineItem = {merchandiseId: variant.id, quantity: quantity, attributes: customAttributes};
+    if (variant.sellingPlanAllocations && variant.sellingPlanAllocations.length > 0) {
+      const firstSellingPlan = variant.sellingPlanAllocations[0].sellingPlan;
+      lineItem.sellingPlanId = firstSellingPlan.id;
+    }
     //const lineItem = {merchandiseId: variant.id, quantity};
     if (this.model) {
       return this.props.client.cart.addLineItems(this.model.id, [lineItem]).then((checkout) => {

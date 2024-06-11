@@ -2499,6 +2499,31 @@ function query(client) {
       unitPriceMeasurement.add("referenceUnit");
       unitPriceMeasurement.add("referenceValue");
     });
+    root.add("sellingPlanAllocations", 
+      {
+        args: {
+          first: 2 
+        }
+      },
+      function (sellingPlanAllocations) {
+        sellingPlanAllocations.add("pageInfo", function (pageInfo) { 
+          pageInfo.add("hasNextPage");
+          pageInfo.add("hasPreviousPage");
+        });
+        sellingPlanAllocations.add("edges", function (edges) {
+          edges.add("cursor");
+          edges.add("node", function (node) {
+            node.add("sellingPlan", function (sellingPlan) { 
+              sellingPlan.add("id");
+              sellingPlan.add("name");
+              sellingPlan.add("options", function (options) { 
+                options.add("name");
+                options.add("value");
+              });
+            });
+          });
+        });
+    });
   });
   spreads.ProductFragment = document.defineFragment("ProductFragment", "Product", function (root) {
     root.add("id");
@@ -2513,6 +2538,54 @@ function query(client) {
     root.add("vendor");
     root.add("publishedAt");
     root.add("onlineStoreUrl");
+    root.add("requiresSellingPlan");
+    root.add("sellingPlanGroups", 
+      {
+        args: {
+          first: 2 
+        }
+      },
+      function (sellingPlanGroup) {
+        sellingPlanGroup.add("pageInfo", function (pageInfo) { 
+          pageInfo.add("hasNextPage");
+          pageInfo.add("hasPreviousPage");
+        });
+        sellingPlanGroup.add("edges", function (edges) {
+          edges.add("cursor");
+          edges.add("node", function (node) {
+            node.add("name");
+            node.add("options", function (options) { 
+              options.add("name");
+              options.add("values");
+            });
+            node.add("sellingPlans", 
+              {
+                args: {
+                  first: 3
+                }
+              },
+              function (sellingPlans) { 
+                sellingPlans.add("pageInfo", function (pageInfo) {
+                  pageInfo.add("hasNextPage");
+                  pageInfo.add("hasPreviousPage");
+                });
+                sellingPlans.add("edges", function (edges) {
+                  edges.add("cursor");
+                  edges.add("node", function (node) {
+                    node.add("id");
+                    node.add("name");
+                    node.add("description");
+                    node.add("recurringDeliveries");
+                    node.add("options", function (options) { 
+                      options.add("name");
+                      options.add("value");
+                    });
+                  });
+                });
+            });
+          });
+        });
+    });
     root.add("options", function (options) {
       options.add("name");
       options.add("values");

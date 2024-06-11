@@ -82,6 +82,7 @@ export default class Product extends Component {
     this.selectedVariant = {};
     this.selectedOptions = {};
     this.selectedImage = null;
+    this.selectedSellingPlanId = null;
     this.modalProduct = Boolean(config.modalProduct);
     this.updater = new ProductUpdater(this);
     this.view = new ProductView(this);
@@ -653,7 +654,7 @@ export default class Product extends Component {
     } else if (this.options.buttonDestination === 'cart') {
       this.props.closeModal();
       this._userEvent('addVariantToCart');
-      this.props.tracker.trackMethod(this.cart.addVariantToCart.bind(this), 'Update Cart', this.selectedVariantTrackingInfo)(this.selectedVariant, this.selectedQuantity, this.customAttributes);
+      this.props.tracker.trackMethod(this.cart.addVariantToCart.bind(this), 'Update Cart', this.selectedVariantTrackingInfo)(this.selectedVariant, this.selectedQuantity, this.customAttributes, this.selectedSellingPlanId);
       if (!this.modalProduct) {
         this.props.setActiveEl(target);
       }
@@ -802,6 +803,10 @@ export default class Product extends Component {
     if (updatedOption) {
       this.selectedOptions[updatedOption.name] = value;
       this.selectedVariant = this.props.client.product.helpers.variantForOptions(this.model, this.selectedOptions);
+      if (this.selectedVariant.sellingPlanAllocations && this.selectedVariant.sellingPlanAllocations.length > 0) {
+        const firstSellingPlan = this.selectedVariant.sellingPlanAllocations[0].sellingPlan;
+        this.selectedSellingPlanId = firstSellingPlan.id;
+      }
     }
 
     if (this.variantExists) {
@@ -816,6 +821,8 @@ export default class Product extends Component {
         return image.id === this.cachedImage.id;
       });
     }
+
+    
     this.view.render();
     this._userEvent('updateVariant');
     return updatedOption;
@@ -842,6 +849,13 @@ export default class Product extends Component {
       acc[option.name] = option.value;
       return acc;
     }, {});
+
+    if (selectedVariant.sellingPlanAllocations && selectedVariant.sellingPlanAllocations.length > 0) {
+      const firstSellingPlan = selectedVariant.sellingPlanAllocations[0].sellingPlan;
+      this.selectedSellingPlanId = firstSellingPlan.id;
+    }
+
+
     this.selectedVariant = selectedVariant;
     return model;
   }
