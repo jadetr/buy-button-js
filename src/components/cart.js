@@ -96,6 +96,16 @@ export default class Cart extends Component {
       const discountAllocations = data.discountAllocations || [];
 
       const {discounts, totalDiscount} = discountAllocations.reduce((discountAcc, discount) => {
+        const discountAmount = discount.discountedAmount.amount;
+        const currencyCode = discount.discountedAmount.currencyCode;
+        const discountCodes = (this.model.discountCodes || []);
+        if (discountCodes.length > 0 && discountCodes[0].applicable) {
+          const discountDisplayText = discountCodes[0].code;
+          discountAcc.totalDiscount += discountAmount;
+          discountAcc.discounts.push({discount: `${discountDisplayText} (-${formatMoney(discountAmount, this.moneyFormat)})`});
+        }
+        
+        /*
         const targetSelection = discount.discountApplication.targetSelection;
         if (LINE_ITEM_TARGET_SELECTIONS.indexOf(targetSelection) > -1) {
           const discountAmount = discount.allocatedAmount.amount;
@@ -103,6 +113,7 @@ export default class Cart extends Component {
           discountAcc.totalDiscount += discountAmount;
           discountAcc.discounts.push({discount: `${discountDisplayText} (-${formatMoney(discountAmount, this.moneyFormat)})`});
         }
+          */
         return discountAcc;
       }, {
         discounts: [],
