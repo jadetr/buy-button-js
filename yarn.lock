@@ -617,6 +617,11 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
+"@shopify/graphql-client@^1.0.0":
+  version "1.3.2"
+  resolved "https://registry.yarnpkg.com/@shopify/graphql-client/-/graphql-client-1.3.2.tgz#de463fce54dea2622a719ce2825de61da88efd5a"
+  integrity sha512-ylHVk6cqjwl3W2ek3FbedH+yO0xXz8gMUuB8A+Rb/mHUD+GLkGdIJChilYf6IkjITnfkJinHdaeLEIappdtpNA==
+
 "@shopify/js-uploader@https://github.com/Shopify/js-uploader.git":
   version "0.1.0"
   resolved "https://github.com/Shopify/js-uploader.git#a12eedd7a95d6e2e1da52093e5c354379d4310bc"

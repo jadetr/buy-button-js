@@ -1,4 +1,6 @@
-import ShopifyBuy from 'shopify-buy';
+//import ShopifyBuy from 'shopify-buy';
+
+import Client from './utils/index.unoptimized.umd';
 import UI from './ui';
 import productTemplates from './templates/product';
 import 'whatwg-fetch';
@@ -9,7 +11,7 @@ import 'core-js/features/array/find';
 import 'core-js/features/object/assign';
 import 'core-js/features/object/values';
 
-class UpdatedShopifyBuy extends ShopifyBuy {
+class UpdatedShopifyBuy extends Client {
   static buildClient(config) {
     const newConfig = Object.assign({}, config, {source: 'buy-button-js'});
     return super.buildClient(newConfig);
