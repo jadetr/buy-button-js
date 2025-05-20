@@ -51,13 +51,31 @@ if (!checkout){
 
 ## Limitations
 
-- Currency is not automatically reflected in cart and product display. Modify the templates to display the proper currency.
+- Currency and custom Attributes are not automatically displayed in cart and product display. Modify the templates to display the proper currency.
+- Ex: to add customAttributes after the title. with the class displaykey you can choose which attribuyte you would show or hide.
+
+```
+lineItem: {
+    templates: {
+        title:
+        '<span class="{{data.classes.lineItem.itemTitle}}" data-element="lineItem.itemTitle">{{data.title}} {{#data.customAttributes.length}}-{{/data.customAttributes.length}} {{#data.customAttributes}} <span class="display{{key}}">{{value}}</span> {{/data.customAttributes}} </span>',
+    }
+}
+```
+
 - Thie version was created with a custom version of graphql-js-client and js-buy-sdk. I had to build those libs and add the index.es.js file manually.
 - You need to create a custom developer App to get a storefrontAccessToken that can use the selling plan (subscriptions)
 
 ## Usage
 
--
+```
+git clone https://github.com/jadetr/buy-button-js.git
+cd buy-button-js
+yarn install
+yarn build
+cp dist/buybutton.* your-destination-folder
+```
+
 - This project is shared for educational purposes and is provided without warranty under the MIT license.
 - Use and self-host at your own risk.
 - To build and run the project, we recommend using a Linux environment.
