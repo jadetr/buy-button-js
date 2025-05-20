@@ -1,11 +1,11 @@
-# BuyButton.js with custom attributes AND market and language support
+# BuyButton.js with custom attributes AND market support AND language support AND selling plan support (subscriptions)
 
 ~ This branch has code from from Innovation-Magic-LLC/buy-button-js-customattributes who added custom attributes ~
 
-On top of that, this version can fetch product for specific market and show checkout related to a given market/price/currency.
-I've added @inContext directive through a local version of buy button sdk 3.0 packaged with a graphql-js-client that support internationalizationDirective.
+On top of that, this version can fetch product for specific market and show checkout related to a given market/language/price/currency.
+I've added @inContext directive through a local version of buy button sdk 3.0 packaged with a custom graphql-js-client that support internationalizationDirective.
 
-This repository contains a modified version of the Shopify Buy Button library that allows developers to add custom attributes to product line items. While the default Buy Button library does not support this functionality, our implementation enables sending additional data from external applications to Shopify, facilitating the creation of custom retail functionality.
+Thx to Innovation-Magic-LLC, this repository contains a modified version of the Shopify Buy Button library that allows developers to add custom attributes to product line items.
 
 ## Features
 
@@ -51,41 +51,16 @@ if (!checkout){
 
 ## Limitations
 
-- Custom attributes are not displayed in the cart before checkout, which may cause confusion for customers with bulk orders. However, this should not be an issue for small orders.
-- mocha test framework is purged
-- After compiling the library, you will need to manually merge your bits with the live shopify bits. We have provided our compiled minified version in ./latest folder.
-- For GraphQL cart API support, this version was built by modifying a compiled version of js-buy-sdk which is a work in progress: https://github.com/Shopify/js-buy-sdk/tree/sd-cart
+- Currency is not automatically reflected in cart and product display. Modify the templates to display the proper currency.
+- Thie version was created with a custom version of graphql-js-client and js-buy-sdk. I had to build those libs and add the index.es.js file manually.
+- You need to create a custom developer App to get a storefrontAccessToken that can use the selling plan (subscriptions)
 
 ## Usage
 
-This project is shared for educational purposes and is provided without warranty under the MIT license.
-
-Use and self-host at your own risk.
-
-To build and run the project, we recommend using a Linux environment.
-
-## Notes
-
-For reference, we keep a copy of the code we compiled before and after merging it.
-
-/dist-compiled/[date]/github-dist - this is the original github compiled dist
-/dist-compiled/[date]/customattributes-dist - this is the updated code compiled dist
-/dist-compiled/[date]/shopify-live - this is a reference copy of the live library hosted by shopify
-/dist-compiled/[date]/release - this is the minified source
-
-/latest - this is the latest minified source with custom attribute functionality.
-
-# Prereqs :
-
-1. Install [nvm](https://github.com/nvm-sh/nvm)
-2. Install build essentials and python 2 `sudo apt-get install -y build-essential g++ python2`
-3. Set project to use NodeJS 15 `nvm use 15`
-4. Install yarn `npm install yarn -g`
-5. Remove from package.json file 'wdio-mocha-framework' which contains the unsupported npm 'fibers' dependency. Its used for test automation.
-6. Run `yarn install`
-7. Run `yarn build`
-
-Happy building!!!
+-
+- This project is shared for educational purposes and is provided without warranty under the MIT license.
+- Use and self-host at your own risk.
+- To build and run the project, we recommend using a Linux environment.
 
 # Original unmodified Readme:
 
