@@ -1074,7 +1074,7 @@ function parseArgs(args) {
     name = null;
   }
 
-  return { name: name, variables: variables, selectionSetCallback: selectionSetCallback };
+  return { name: name, variables: variables, selectionSetCallback: selectionSetCallback, internationalizationDirective: internationalizationDirective };
 }
 
 var VariableDefinitions = function () {
@@ -2607,6 +2607,10 @@ function mapLineItemToLine(lineItem) {
     line.merchandiseId = lineItem.variantId;
   }
 
+  if (typeof lineItem.sellingPlanId !== 'undefined') {
+    line.sellingPlanId = lineItem.sellingPlanId;
+  }
+
   if (Object.keys(line).length === 0) {
     return null;
   }
@@ -2778,6 +2782,29 @@ function query(client) {
       unitPriceMeasurement.add("referenceUnit");
       unitPriceMeasurement.add("referenceValue");
     });
+    root.add("sellingPlanAllocations", {
+      args: {
+        first: 3
+      }
+    }, function (sellingPlanAllocations) {
+      sellingPlanAllocations.add("pageInfo", function (pageInfo) {
+        pageInfo.add("hasNextPage");
+        pageInfo.add("hasPreviousPage");
+      });
+      sellingPlanAllocations.add("edges", function (edges) {
+        edges.add("cursor");
+        edges.add("node", function (node) {
+          node.add("sellingPlan", function (sellingPlan) {
+            sellingPlan.add("id");
+            sellingPlan.add("name");
+            sellingPlan.add("options", function (options) {
+              options.add("name");
+              options.add("value");
+            });
+          });
+        });
+      });
+    });
   });
   spreads.ProductFragment = document.defineFragment("ProductFragment", "Product", function (root) {
     root.add("id");
@@ -2948,6 +2975,29 @@ function query$1(client) {
       unitPriceMeasurement.add("quantityValue");
       unitPriceMeasurement.add("referenceUnit");
       unitPriceMeasurement.add("referenceValue");
+    });
+    root.add("sellingPlanAllocations", {
+      args: {
+        first: 3
+      }
+    }, function (sellingPlanAllocations) {
+      sellingPlanAllocations.add("pageInfo", function (pageInfo) {
+        pageInfo.add("hasNextPage");
+        pageInfo.add("hasPreviousPage");
+      });
+      sellingPlanAllocations.add("edges", function (edges) {
+        edges.add("cursor");
+        edges.add("node", function (node) {
+          node.add("sellingPlan", function (sellingPlan) {
+            sellingPlan.add("id");
+            sellingPlan.add("name");
+            sellingPlan.add("options", function (options) {
+              options.add("name");
+              options.add("value");
+            });
+          });
+        });
+      });
     });
   });
   spreads.ProductFragment = document.defineFragment("ProductFragment", "Product", function (root) {
@@ -3122,6 +3172,29 @@ function query$2(client) {
       unitPriceMeasurement.add("quantityValue");
       unitPriceMeasurement.add("referenceUnit");
       unitPriceMeasurement.add("referenceValue");
+    });
+    root.add("sellingPlanAllocations", {
+      args: {
+        first: 3
+      }
+    }, function (sellingPlanAllocations) {
+      sellingPlanAllocations.add("pageInfo", function (pageInfo) {
+        pageInfo.add("hasNextPage");
+        pageInfo.add("hasPreviousPage");
+      });
+      sellingPlanAllocations.add("edges", function (edges) {
+        edges.add("cursor");
+        edges.add("node", function (node) {
+          node.add("sellingPlan", function (sellingPlan) {
+            sellingPlan.add("id");
+            sellingPlan.add("name");
+            sellingPlan.add("options", function (options) {
+              options.add("name");
+              options.add("value");
+            });
+          });
+        });
+      });
     });
   });
   spreads.ProductFragment = document.defineFragment("ProductFragment", "Product", function (root) {
@@ -3306,6 +3379,29 @@ function query$3(client) {
       unitPriceMeasurement.add("referenceUnit");
       unitPriceMeasurement.add("referenceValue");
     });
+    root.add("sellingPlanAllocations", {
+      args: {
+        first: 3
+      }
+    }, function (sellingPlanAllocations) {
+      sellingPlanAllocations.add("pageInfo", function (pageInfo) {
+        pageInfo.add("hasNextPage");
+        pageInfo.add("hasPreviousPage");
+      });
+      sellingPlanAllocations.add("edges", function (edges) {
+        edges.add("cursor");
+        edges.add("node", function (node) {
+          node.add("sellingPlan", function (sellingPlan) {
+            sellingPlan.add("id");
+            sellingPlan.add("name");
+            sellingPlan.add("options", function (options) {
+              options.add("name");
+              options.add("value");
+            });
+          });
+        });
+      });
+    });
   });
   spreads.ProductFragment = document.defineFragment("ProductFragment", "Product", function (root) {
     root.add("id");
@@ -3476,6 +3572,29 @@ function query$4(client) {
       unitPriceMeasurement.add("quantityValue");
       unitPriceMeasurement.add("referenceUnit");
       unitPriceMeasurement.add("referenceValue");
+    });
+    root.add("sellingPlanAllocations", {
+      args: {
+        first: 3
+      }
+    }, function (sellingPlanAllocations) {
+      sellingPlanAllocations.add("pageInfo", function (pageInfo) {
+        pageInfo.add("hasNextPage");
+        pageInfo.add("hasPreviousPage");
+      });
+      sellingPlanAllocations.add("edges", function (edges) {
+        edges.add("cursor");
+        edges.add("node", function (node) {
+          node.add("sellingPlan", function (sellingPlan) {
+            sellingPlan.add("id");
+            sellingPlan.add("name");
+            sellingPlan.add("options", function (options) {
+              options.add("name");
+              options.add("value");
+            });
+          });
+        });
+      });
     });
   });
   spreads.ProductFragment = document.defineFragment("ProductFragment", "Product", function (root) {
@@ -3836,6 +3955,29 @@ function query$6(client) {
       unitPriceMeasurement.add("referenceUnit");
       unitPriceMeasurement.add("referenceValue");
     });
+    root.add("sellingPlanAllocations", {
+      args: {
+        first: 3
+      }
+    }, function (sellingPlanAllocations) {
+      sellingPlanAllocations.add("pageInfo", function (pageInfo) {
+        pageInfo.add("hasNextPage");
+        pageInfo.add("hasPreviousPage");
+      });
+      sellingPlanAllocations.add("edges", function (edges) {
+        edges.add("cursor");
+        edges.add("node", function (node) {
+          node.add("sellingPlan", function (sellingPlan) {
+            sellingPlan.add("id");
+            sellingPlan.add("name");
+            sellingPlan.add("options", function (options) {
+              options.add("name");
+              options.add("value");
+            });
+          });
+        });
+      });
+    });
   });
   spreads.CollectionFragment = document.defineFragment("CollectionFragment", "Collection", function (root) {
     root.add("id");
@@ -4092,6 +4234,29 @@ function query$8(client) {
       unitPriceMeasurement.add("referenceUnit");
       unitPriceMeasurement.add("referenceValue");
     });
+    root.add("sellingPlanAllocations", {
+      args: {
+        first: 3
+      }
+    }, function (sellingPlanAllocations) {
+      sellingPlanAllocations.add("pageInfo", function (pageInfo) {
+        pageInfo.add("hasNextPage");
+        pageInfo.add("hasPreviousPage");
+      });
+      sellingPlanAllocations.add("edges", function (edges) {
+        edges.add("cursor");
+        edges.add("node", function (node) {
+          node.add("sellingPlan", function (sellingPlan) {
+            sellingPlan.add("id");
+            sellingPlan.add("name");
+            sellingPlan.add("options", function (options) {
+              options.add("name");
+              options.add("value");
+            });
+          });
+        });
+      });
+    });
   });
   spreads.CollectionFragment = document.defineFragment("CollectionFragment", "Collection", function (root) {
     root.add("id");
@@ -4305,6 +4470,29 @@ function query$9(client) {
       unitPriceMeasurement.add("quantityValue");
       unitPriceMeasurement.add("referenceUnit");
       unitPriceMeasurement.add("referenceValue");
+    });
+    root.add("sellingPlanAllocations", {
+      args: {
+        first: 3
+      }
+    }, function (sellingPlanAllocations) {
+      sellingPlanAllocations.add("pageInfo", function (pageInfo) {
+        pageInfo.add("hasNextPage");
+        pageInfo.add("hasPreviousPage");
+      });
+      sellingPlanAllocations.add("edges", function (edges) {
+        edges.add("cursor");
+        edges.add("node", function (node) {
+          node.add("sellingPlan", function (sellingPlan) {
+            sellingPlan.add("id");
+            sellingPlan.add("name");
+            sellingPlan.add("options", function (options) {
+              options.add("name");
+              options.add("value");
+            });
+          });
+        });
+      });
     });
   });
   spreads.ProductFragment = document.defineFragment("ProductFragment", "Product", function (root) {
@@ -10811,6 +10999,7 @@ var ProductVariant = {
     "price": "MoneyV2",
     "product": "Product",
     "selectedOptions": "SelectedOption",
+    "sellingPlanAllocations": "SellingPlanAllocationConnection",
     "sku": "String",
     "title": "String",
     "unitPrice": "MoneyV2",
@@ -10886,6 +11075,35 @@ var SellingPlan = {
     "name": "String",
     "options": "SellingPlanOption",
     "recurringDeliveries": "Boolean"
+  },
+  "implementsNode": false
+};
+
+var SellingPlanAllocation = {
+  "name": "SellingPlanAllocation",
+  "kind": "OBJECT",
+  "fieldBaseTypes": {
+    "sellingPlan": "SellingPlan"
+  },
+  "implementsNode": false
+};
+
+var SellingPlanAllocationConnection = {
+  "name": "SellingPlanAllocationConnection",
+  "kind": "OBJECT",
+  "fieldBaseTypes": {
+    "edges": "SellingPlanAllocationEdge",
+    "pageInfo": "PageInfo"
+  },
+  "implementsNode": false
+};
+
+var SellingPlanAllocationEdge = {
+  "name": "SellingPlanAllocationEdge",
+  "kind": "OBJECT",
+  "fieldBaseTypes": {
+    "cursor": "String",
+    "node": "SellingPlanAllocation"
   },
   "implementsNode": false
 };
@@ -11126,6 +11344,9 @@ Types.types["QueryRoot"] = QueryRoot;
 Types.types["ScriptDiscountApplication"] = ScriptDiscountApplication;
 Types.types["SelectedOption"] = SelectedOption;
 Types.types["SellingPlan"] = SellingPlan;
+Types.types["SellingPlanAllocation"] = SellingPlanAllocation;
+Types.types["SellingPlanAllocationConnection"] = SellingPlanAllocationConnection;
+Types.types["SellingPlanAllocationEdge"] = SellingPlanAllocationEdge;
 Types.types["SellingPlanConnection"] = SellingPlanConnection;
 Types.types["SellingPlanEdge"] = SellingPlanEdge;
 Types.types["SellingPlanGroup"] = SellingPlanGroup;
