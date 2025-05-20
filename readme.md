@@ -39,12 +39,12 @@ const localStorageCheckoutKey = `${client.config.storefrontAccessToken}.${client
 var checkout = null;
 if (localStorage.getItem(localStorageCheckoutKey)) {
     var checkoutId = localStorage.getItem(localStorageCheckoutKey);
-    checkout = await client.cart.fetch(checkoutId);
+    checkout = await client.checkout.fetch(checkoutId);
 }
 
 //checkout = null;
 if (!checkout){
-    checkout = await client.cart.create(input);
+    checkout = await client.checkout.create(input);
     localStorage.setItem(localStorageCheckoutKey, checkout.id);
 }
 ```

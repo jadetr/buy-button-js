@@ -1,6 +1,6 @@
 //import ShopifyBuy from 'shopify-buy';
 
-import Client from './utils/index.unoptimized.umd';
+import Client from './utils/index.es';
 import UI from './ui';
 import productTemplates from './templates/product';
 import 'whatwg-fetch';

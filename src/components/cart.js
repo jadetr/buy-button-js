@@ -81,7 +81,7 @@ export default class Cart extends Component {
    * @return {Array} HTML
    */
   get lineItems() {
-    return this.model ? this.model.lines : [];
+    return this.model ? this.model.lineItems : [];
   }
 
   /**
@@ -91,20 +91,11 @@ export default class Cart extends Component {
   get lineItemsHtml() {
     return this.lineItemCache.reduce((acc, lineItem) => {
       const data = Object.assign({}, lineItem, this.options.viewData);
-      const fullPrice = data.cost.amountPerQuantity.amount * data.quantity;
+      const fullPrice = data.variant.priceV2.amount * data.quantity;
       const formattedPrice = formatMoney(fullPrice, this.moneyFormat);
-      const discountAllocations = data.discountAllocations || [];
+      const discountAllocations = data.discountAllocations;
 
       const {discounts, totalDiscount} = discountAllocations.reduce((discountAcc, discount) => {
-        const discountAmount = discount.discountedAmount.amount;
-        const discountCodes = (this.model.discountCodes || []);
-        if (discountCodes.length > 0 && discountCodes[0].applicable) {
-          const discountDisplayText = discountCodes[0].code;
-          discountAcc.totalDiscount += discountAmount;
-          discountAcc.discounts.push({discount: `${discountDisplayText} (-${formatMoney(discountAmount, this.moneyFormat)})`});
-        }
-        
-        /*
         const targetSelection = discount.discountApplication.targetSelection;
         if (LINE_ITEM_TARGET_SELECTIONS.indexOf(targetSelection) > -1) {
           const discountAmount = discount.allocatedAmount.amount;
@@ -112,7 +103,6 @@ export default class Cart extends Component {
           discountAcc.totalDiscount += discountAmount;
           discountAcc.discounts.push({discount: `${discountDisplayText} (-${formatMoney(discountAmount, this.moneyFormat)})`});
         }
-          */
         return discountAcc;
       }, {
         discounts: [],
@@ -125,9 +115,8 @@ export default class Cart extends Component {
 
       data.classes = this.classes;
       data.text = this.config.lineItem.text;
-      data.title = data.merchandise.product.title;
       data.lineItemImage = this.imageForLineItem(data);
-      data.variantTitle = data.merchandise.title === 'Default Title' ? '' : data.merchandise.title;
+      data.variantTitle = data.variant.title === 'Default Title' ? '' : data.variant.title;
       return acc + this.childTemplate.render({data}, (output) => `<li id="${lineItem.id}" class=${this.classes.lineItem.lineItem}>${output}</li>`);
     }, '');
   }
@@ -159,23 +148,22 @@ export default class Cart extends Component {
     if (!this.model) {
       return formatMoney(0, this.moneyFormat);
     }
-    //const total = this.options.contents.discounts ? this.model.subtotalPriceV2.amount : this.model.linesSubtotalPrice.amount;
-    const total = this.options.contents.discounts ? this.model.cost.subtotalAmount.amount : this.model.cost.subtotalAmount.amount;
+    const total = this.options.contents.discounts ? this.model.subtotalPriceV2.amount : this.model.lineItemsSubtotalPrice.amount;
     return formatMoney(total, this.moneyFormat);
   }
 
   get cartDiscounts() {
-    if (!this.options.contents.discounts || !this.model || !this.model.discountAllocations) {
+    if (!this.options.contents.discounts || !this.model) {
       return [];
     }
 
-    return this.model.discountAllocations.reduce((discountArr, discount) => {
+    return this.model.discountApplications.reduce((discountArr, discount) => {
       if (discount.targetSelection === CART_TARGET_SELECTION) {
         let discountValue = 0;
         if (discount.value.amount) {
           discountValue = discount.value.amount;
         } else if (discount.value.percentage) {
-          discountValue = (discount.value.percentage / 100) * this.model.linesSubtotalPrice.amount;
+          discountValue = (discount.value.percentage / 100) * this.model.lineItemsSubtotalPrice.amount;
         }
 
         if (discountValue > 0) {
@@ -195,7 +183,7 @@ export default class Cart extends Component {
     if (!this.model) {
       return true;
     }
-    return this.model.lines.length < 1;
+    return this.model.lineItems.length < 1;
   }
 
   get cartNote() {
@@ -220,8 +208,8 @@ export default class Cart extends Component {
       maxWidth: imageSize,
       maxHeight: imageSize,
     };
-    if (lineItem.merchandise.image) {
-      return this.props.client.image.helpers.imageForSize(lineItem.merchandise.image, imageOptions);
+    if (lineItem.variant.image) {
+      return this.props.client.image.helpers.imageForSize(lineItem.variant.image, imageOptions);
     } else {
       return NO_IMG_URL;
     }
@@ -244,17 +232,16 @@ export default class Cart extends Component {
   fetchData() {
     const checkoutId = localStorage.getItem(this.localStorageCheckoutKey);
     if (checkoutId) {
-      return this.props.client.cart.fetch(checkoutId).then((checkout) => {
-        this.model = Object.assign({}, checkout, {id: checkoutId});
-      
+      return this.props.client.checkout.fetch(checkoutId).then((checkout) => {
+        this.model = checkout;
         if (checkout.completedAt) {
           return this.removeCheckout();
         }
-        return this.sanitizeCheckout(this.model).then((newCheckout) => {
-          this.updateCache(newCheckout.lines);
+        return this.sanitizeCheckout(checkout).then((newCheckout) => {
+          this.updateCache(newCheckout.lineItems);
           return newCheckout;
         });
-      }).catch((e) => {
+      }).catch(() => {
         return this.removeCheckout();
       });
     } else {
@@ -263,12 +250,12 @@ export default class Cart extends Component {
   }
 
   sanitizeCheckout(checkout) {
-    const lineItemsToDelete = checkout.lines.filter((item) => !item.merchandise);
+    const lineItemsToDelete = checkout.lineItems.filter((item) => !item.variant);
     if (!lineItemsToDelete.length) {
       return Promise.resolve(checkout);
     }
     const lineItemIds = lineItemsToDelete.map((item) => item.id);
-    return this.props.client.cart.removeLineItems(checkout.id, lineItemIds).then((newCheckout) => {
+    return this.props.client.checkout.removeLineItems(checkout.id, lineItemIds).then((newCheckout) => {
       return newCheckout;
     });
   }
@@ -294,7 +281,7 @@ export default class Cart extends Component {
     return super.init(data)
       .then((cart) => {
         return this.toggles.map((toggle) => {
-          const lineItems = cart.model ? cart.model.lines : [];
+          const lineItems = cart.model ? cart.model.lineItems : [];
           return toggle.init({lineItems});
         });
       }).then(() => this);
@@ -346,7 +333,7 @@ export default class Cart extends Component {
   onCheckout() {
     this._userEvent('openCheckout');
     this.props.tracker.track('Open cart checkout', {});
-    this.checkout.open(this.model.checkoutUrl);
+    this.checkout.open(this.model.webUrl);
   }
 
   /**
@@ -356,8 +343,8 @@ export default class Cart extends Component {
    */
   setQuantity(target, fn) {
     const id = target.getAttribute('data-line-item-id');
-    const item = this.model.lines.find((lineItem) => lineItem.id === id);
-    const attributes = item.attributes.map((attr) => { 
+    const item = this.model.lineItems.find((lineItem) => lineItem.id === id);
+    const attributes = item.customAttributes.map((attr) => { 
       return {key: attr.key, value: attr.value}
     });
     const newQty = fn(item.quantity);
@@ -366,7 +353,7 @@ export default class Cart extends Component {
 
   setNote(evt) {
     const note = evt.target.value;
-    return this.props.client.cart.updateAttributes(this.model.id, {note}).then((checkout) => {
+    return this.props.client.checkout.updateAttributes(this.model.id, {note}).then((checkout) => {
       this.model = checkout;
       return checkout;
     });
@@ -410,7 +397,8 @@ export default class Cart extends Component {
    */
   updateItem(id, quantity, attributes) {
     this._userEvent('updateItemQuantity');
-    const lineItem = {id, quantity, attributes};
+    const customAttributes = attributes
+    const lineItem = {id, quantity, customAttributes};
     const lineItemEl = this.view.document.getElementById(id);
     if (lineItemEl) {
       const quantityEl = lineItemEl.getElementsByClassName(this.classes.lineItem.quantity)[0];
@@ -418,9 +406,9 @@ export default class Cart extends Component {
         addClassToElement('is-loading', quantityEl);
       }
     }
-    return this.props.client.cart.updateLineItems(this.model.id, [lineItem]).then((checkout) => {
+    return this.props.client.checkout.updateLineItems(this.model.id, [lineItem]).then((checkout) => {
       this.model = checkout;
-      this.updateCache(this.model.lines);
+      this.updateCache(this.model.lineItems);
       this.toggles.forEach((toggle) => toggle.view.render());
       if (quantity > 0) {
         this.view.render();
@@ -444,16 +432,16 @@ export default class Cart extends Component {
     if (openCart) {
       this.open();
     }
-    const lineItem = {merchandiseId: variant.id, quantity: quantity, attributes: customAttributes};
+    const lineItem = {variantId: variant.id, quantity: quantity, customAttributes: customAttributes};
     if (variant.sellingPlanAllocations && variant.sellingPlanAllocations.length > 0) {
       const firstSellingPlan = variant.sellingPlanAllocations[0].sellingPlan;
       lineItem.sellingPlanId = firstSellingPlan.id;
     }
     //const lineItem = {merchandiseId: variant.id, quantity};
     if (this.model) {
-      return this.props.client.cart.addLineItems(this.model.id, [lineItem]).then((checkout) => {
+      return this.props.client.checkout.addLineItems(this.model.id, [lineItem]).then((checkout) => {
         this.model = checkout;
-        this.updateCache(this.model.lines);
+        this.updateCache(this.model.lineItems);
         this.view.render();
         this.toggles.forEach((toggle) => toggle.view.render());
         if (!openCart) {
@@ -463,15 +451,15 @@ export default class Cart extends Component {
       });
     } else {
       const input = {
-        lines: [
+        lineItems: [
           lineItem,
         ],
-        attributes: this.options.customAttributes || [],
+        customAttributes: this.options.customAttributes || [],
       };
-      return this.props.client.cart.create(input).then((checkout) => {
+      return this.props.client.checkout.create(input).then((checkout) => {
         localStorage.setItem(this.localStorageCheckoutKey, checkout.id);
         this.model = checkout;
-        this.updateCache(this.model.lines);
+        this.updateCache(this.model.lineItems);
         this.view.render();
         this.toggles.forEach((toggle) => toggle.view.render());
         if (!openCart) {
@@ -486,9 +474,9 @@ export default class Cart extends Component {
    * Remove all lineItems in the cart
    */
   empty() {
-    const lineItemIds = this.model.lines ? this.model.lines.map((item) => item.id) : [];
+    const lineItemIds = this.model.lineItems ? this.model.lineItems.map((item) => item.id) : [];
 
-    return this.props.client.cart.removeLineItems(this.model.id, lineItemIds).then((checkout) => {
+    return this.props.client.checkout.removeLineItems(this.model.id, lineItemIds).then((checkout) => {
       this.model = checkout;
       this.view.render();
       this.toggles.forEach((toggle) => toggle.view.render());
@@ -502,11 +490,11 @@ export default class Cart extends Component {
    */
   cartItemTrackingInfo(item, quantity) {
     return {
-      id: item.id,
-      variantName: item.merchandise.title,
-      productId: item.merchandise.product.id,
-      name: item.merchandise.product.title,
-      price: item.cost.amountPerQuantity.amount,
+      id: item.variant.id,
+      variantName: item.variant.title,
+      productId: item.variant.product.id,
+      name: item.title,
+      price: item.variant.priceV2.amount,
       prevQuantity: item.quantity,
       quantity: parseFloat(quantity),
       sku: null,
